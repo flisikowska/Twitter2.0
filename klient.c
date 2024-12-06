@@ -11,15 +11,6 @@
 #define MY_MSG_SIZE 100 //Maksymalny rozmiar wiadomosci
 #define LOGIN_SIZE 20 //Maksymalny rozmiar loginu uzytkownika
 
-key_t shm_entries_key;
-key_t shm_state_key;
-key_t sem_entries_key;
-key_t sem_counter_key;
-int shm_entries_id;
-int shm_state_id;
-int sem_entries_id;
-int sem_counter_id;
-
 //Struktura dla wpisu
 struct entry{
 	char username[LOGIN_SIZE];
@@ -33,11 +24,20 @@ struct state{
 	int counter; //Aktualna liczba wpisow
 };
 
+key_t shm_entries_key;
+key_t shm_state_key;
+key_t sem_entries_key;
+key_t sem_counter_key;
+int shm_entries_id;
+int shm_state_id;
+int sem_entries_id;
+int sem_counter_id;
+
 struct entry *shm_entries;
 struct state *shm_state;
 
 int main(int argc, char* argv[]){
-	char bufor[MY_MSG_SIZE];
+	char bufor[MY_MSG_SIZE+1];
 	
 	//Tworzenie klucza i uzyskanie dostepu do segmentu pamieci wspoldzielonej (wpisy)
 	if((shm_entries_key= ftok(argv[1], 'R'))==-1){
@@ -102,8 +102,8 @@ int main(int argc, char* argv[]){
 
 		printf("[Wolnych %d wpisow(na %d)]\n", (shm_state->n)-(shm_state->counter), shm_state->n);
 		printf("Podaj swoj wpis: \n");
-		int count=read(0, bufor, MY_MSG_SIZE);
-		if(count>=MY_MSG_SIZE){
+		int count=read(0, bufor, MY_MSG_SIZE+1);
+		if(count>MY_MSG_SIZE){
 			fprintf(stderr, "Wiadomosc jest zbyt dluga\n");
 			exit(1);
 		}
@@ -116,13 +116,13 @@ int main(int argc, char* argv[]){
 		
 		//Aktualizacja licznika wpisow
 		int current_counter= shm_state->counter;
-		shm_state->counter=current_counter+1;
-
-		//Odblokowanie licznika wpisow
-		sb_counter.sem_op=1;
-		semop(sem_counter_id, &sb_counter, 1);
-		
 		if(current_counter<=shm_state->n){
+			shm_state->counter=current_counter+1;
+		
+			//Odblokowanie licznika wpisow
+			sb_counter.sem_op=1;
+			semop(sem_counter_id, &sb_counter, 1);
+
 			//Zablokowanie miejsca na nowy wpis
 			sb.sem_num=current_counter;
 			sb.sem_op=-1;
@@ -135,13 +135,17 @@ int main(int argc, char* argv[]){
 			shm_entries[current_counter].message[count-1]='\0';
 			shm_entries[current_counter].likes=0;
 
-			//Odblokowanie miejsca na nowy wpis
+			//Odblokowanie miejsca
 			sb.sem_op=1;
 			semop(sem_entries_id, &sb, 1);
 		}
 		else{
+			//Odblokowanie licznika wpisow
+			sb_counter.sem_op=1;
+			semop(sem_counter_id, &sb_counter, 1);
+			
 			printf("Brak miejsca na nowy wpis");
-			exit(0);
+			exit(1);
 		}
 	}
 	//Obsluga polubienia istniejacego wpisu

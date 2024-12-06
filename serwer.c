@@ -11,15 +11,6 @@
 #define MY_MSG_SIZE 100 //Maksymalny rozmiar wiadomosci
 #define LOGIN_SIZE 20 //Maksymalny rozmiar loginu uzytkownika
 
-key_t shm_entries_key;
-key_t shm_state_key;
-key_t sem_entries_key;
-key_t sem_counter_key;
-int shm_entries_id;
-int shm_state_id;
-int sem_entries_id;
-int sem_counter_id;
-
 //Struktura dla wpisu
 struct entry{
 	char username[LOGIN_SIZE];
@@ -32,6 +23,15 @@ struct state{
 	int n; //Maksymalna liczba wpisow
 	int counter; //Aktualna liczba wpisow
 };
+
+key_t shm_entries_key;
+key_t shm_state_key;
+key_t sem_entries_key;
+key_t sem_counter_key;
+int shm_entries_id;
+int shm_state_id;
+int sem_entries_id;
+int sem_counter_id;
 
 //Wskazniki do pamieci wspoldzielonej
 struct entry * shm_entries;
