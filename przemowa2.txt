@@ -1,0 +1,34 @@
+Maciej Chyczewski
+azywam się Emilia Flisikowska, należę do grupy LC.
+Chciałabym zaprezentować moje rozwiązanie zadania dotyczącego implementacji serwisu "Twitter 2.0" z użyciem pamięci współdzielonej i semaforów w systemie UNIX, w wariancie A.
+
+Projekt składa się z następujących części: serwera oraz klienta w dwóch wariantach.
+
+Serwer odpowiada za tworzenie pamięci współdzielonej, zarządzanie nią oraz konsumpcję wpisów w niej umieszczonych. Klient umożliwia użytkownikowi dodawanie nowych wpisów oraz polubianie istniejących wpisów poprzez umieszczanie i aktualizuje wpisów w pamięci współdzielonej.
+
+W projekcie wykorzystywane są dwie oddzielne obszary pamięci współdzielonej: jedna obszar przechowuje wpisy (wiadomości, autorów, liczbę polubień), a druga – informacje o liczbie wpisów oraz maksymalną liczbę wpisów. Do synchronizacji dostępu do tej pamięci wykorzystuję semafory - jeden do obsługi liczby wpisów oraz po jednym dla każdego wpisu.
+
+Na początek omówię kod serwera.
+
+*Tworzę klucze i identyfikatory dla pamięci współdzielonych oraz semaforów.
+*Następnie tworzę dwie struktury do przechowywania danych w pamięci dzielonej: pierwszą dla pamięci dzielonej zawierającej wpisy w serwisie, a drugą dla pamięci dzielonej zawierającej stan serwera.
+*Następnie tworzę dwie funkcje do obsługi sygnałów: Pierwsza, handle_sigtstp wyświetla bieżący stan serwisu, a druga, handle_sigint zakańcza działanie serwisu, usuwając wszystkie zasoby IPC z systemu.
+*w funkcji main rejestruję obsługę sygnałów a następnie tworzę dwa segmenty pamięci współdzielonej: jeden dla wpisów, a drugi do przechowywania informacji o ilości wpisów.
+*Następnie tworzę listę semaforów długości maksymalnej ilości wpisów w serwisie oraz semafor dla licznika wpisów.
+*Uzyskuję dostęp do obu obszarów pamięci współdzielonej.
+*Inicjalizuję semafory.
+*Następnie Serwer czeka na sygnały od użytkownika, takie jak Ctrl+Z oraz Ctrl+C
+
+Teraz przejdę do kodu klienta.
+
+*Tworzę klucze i identyfikatory dla pamięci współdzielonej oraz semaforów.
+*Następnie uzyskuję dostęp do dwóch segmentów pamięci współdzielonej: jeden przechowuje dane o wpisach użytkowników, a drugi zawiera informacje o stanie serwera.
+*Łączę się z pamięciami współdzielonymi.
+*Tworzę klucze i uzyskuję dostęp do semaforów, które synchronizują dostęp do pamięci współdzielonej: listę semaforów dla wpisów oraz semafor dla licznika wpisów.
+*W przypadku, gdy użytkownik chce dodać nowy wpis (argument 'N'), program wyświetla dostępne miejsca na nowe wpisy, blokuje odpowiedni semafor dla licznika, aktualizuje liczbę wpisów, a następnie zapisuje nowy wpis w pamięci współdzielonej, blokując odpowiednie miejsce w pamięci.
+*Jeśli użytkownik chce polubić istniejący wpis (argument 'P'), program wyświetla listę dostępnych wpisów i prosi o wybór wpisu do polubienia, po czym blokuje odpowiedni wpis, zwiększa liczbę jego polubień i odblokowuje pozycję w pamięci.
+*Na końcu klient wyświetla komunikat o zakończeniu działania aplikacji i kończy proces.
+
+Teraz zaprezentuję działanie programu.
+
+Dziękuję za uwagę.
